@@ -1,0 +1,44 @@
+analyzer:
+  _target_: obsei.analyzer.classification_analyzer.ZeroShotClassificationAnalyzer
+  device: auto
+  model_name_or_path: typeform/mobilebert-uncased-mnli
+analyzer_config:
+  _target_: obsei.analyzer.classification_analyzer.ClassificationAnalyzerConfig
+  labels:
+  - availability
+  - product
+  - pricy
+  - positive outlook
+  - negative outlook
+  multi_class_classification: true
+  use_splitter_and_aggregator: true
+  splitter_config:
+    _target_: obsei.preprocessor.text_splitter.TextSplitterConfig
+    max_split_length: 300
+    split_stride: 10
+  aggregator_config:
+    _target_: obsei.postprocessor.inference_aggregator.InferenceAggregatorConfig
+    aggregate_function:
+      _target_: obsei.postprocessor.inference_aggregator_function.ClassificationAverageScore
+      score_threshold: 0.4
+sink:
+  #_target_: obsei.sink.elasticsearch_sink.ElasticSearchSink
+  _target_: obsei.sink.http_sink.HttpSink
+sink_config:
+  #_target_: obsei.sink.elasticsearch_sink.ElasticSearchSinkConfig
+  #host: "localhost"
+  #port: 9200
+  #index_name: "test"
+  _target_: obsei.sink.http_sink.HttpSinkConfig
+  url: 'https://supplyfy.com.br/api/news'
+  headers:
+    Content-type: "application/json"
+    authorization: `Bearer ${{ secrets.SUPPLYFY_TOKEN }}`
+source:
+  _target_: obsei.source.google_news_source.GoogleNewsSource
+source_config:
+  _target_: obsei.source.google_news_source.GoogleNewsConfig
+  fetch_article: true
+  lookup_period: 1d
+  max_results: '3'
+  query: ola electric

@@ -1,0 +1,28 @@
+name: news action
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  testing_workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Execute workflow
+        env:
+          SUPPLYFY_TOKEN: ${{ secrets.SUPPLYFY_TOKEN }}
+        run: |
+          python news-workflow.py
